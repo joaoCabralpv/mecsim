@@ -4,7 +4,7 @@ import math
 
 
 def draw_vector(screen,pos:Vector,vector:Vector,color):
-    scale = 50
+    scale = 10
     #vector*=scale
     vector = Vector(vector.x*scale,vector.y*scale)
     end = pos+vector
