@@ -29,9 +29,13 @@ bodyList.append(Body(pg.Rect(100,100,100,50),500))
 
 body_to_add_force = None
 
-show_forces=False
+pos_to_add_body = None
+
+show_forces=True
 
 while running:
+
+    screen.fill("cyan")
 
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -42,6 +46,8 @@ while running:
             show_forces = not show_forces
         elif event.type == add_force_event:
             mode=Mode.ADD_FORCE_SELECT_OBJECT
+        elif event.type == add_body_event:
+            mode=Mode.ADD_BODY_SELECT_POSITION
 
 
     if mode == Mode.ADD_FORCE_SELECT_OBJECT and pg.mouse.get_just_pressed()[0]:
@@ -50,14 +56,20 @@ while running:
                 body_to_add_force=body
                 mode=Mode.ADD_FORCE_CHOSE_VECTOR
                 break
-    elif mode == Mode.ADD_FORCE_CHOSE_VECTOR and pg.mouse.get_just_pressed()[0]:
-        body_pos=body_to_add_force.center()
-        mouse_pos=pg.mouse.get_pos()
-        force=Force((Vector(mouse_pos)-Vector(body_pos))/10)
-        body_to_add_force.apply_force(force)
+
+    elif mode == Mode.ADD_FORCE_CHOSE_VECTOR:
+        if pg.mouse.get_just_pressed()[0]:
+            body_pos=body_to_add_force.center()
+            mouse_pos=pg.mouse.get_pos()
+            force=Force((Vector(mouse_pos)-Vector(body_pos))/10)
+            body_to_add_force.apply_force(force)
+            mode=Mode.DEFAULT
+
+        draw_vector(screen,body_to_add_force.center(),(Vector(pg.mouse.get_pos())-Vector(body_to_add_force.center()))/scale,(0,0,0))
+
 
     # fill the screen with a color to wipe away anything from last frame
-    screen.fill("cyan")
+    
     # RENDER YOUR GAME HERE
     for body in bodyList:
         body.update()
