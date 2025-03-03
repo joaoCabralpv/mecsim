@@ -30,6 +30,9 @@ class Body:
         for force in self.applied_forces:
             draw_vector(screen,self.center(),force.direction,(0,0,0))
 
+    def render_net_force(self,screen:pg.surface):
+        draw_vector(screen,self.center(),self.net_force,(255,0,0))
+
     def update(self):
         self.velocity+=self.net_force/self.mass
         new_pos_x=self.rect.x+self.velocity.x
