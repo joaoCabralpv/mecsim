@@ -1,6 +1,7 @@
 import pygame as pg
 import pygame_gui as gui
 from pygame.math import Vector2 as Vector
+from math import tau
 
 pg.init()
 
@@ -10,9 +11,10 @@ from vector_tools import *
 import gui 
 from custom_event import *
 from state import *
+from ground import Ground
 
-
-screen = pg.display.set_mode((1280, 720), pg.RESIZABLE)
+resolution = (1280, 720)
+screen = pg.display.set_mode(resolution, pg.RESIZABLE)
 
 side_menu = gui.Side_panel(150)
 side_menu.add_button(5,30,pg.Color(178, 190, 195),"Show forces",pg.Color(0, 0, 0),show_forces_event)
@@ -22,6 +24,8 @@ clock = pg.time.Clock()
 running = True
 
 bodyList.append(Body(pg.Rect(100,100,100,50),500))
+
+ground = Ground(400,tau/16,True)
 
 body_to_add_force = None
 
@@ -39,6 +43,7 @@ while running:
             if event.key == pg.K_SPACE:
                 paused = not paused
         elif event.type == pg.VIDEORESIZE:
+            resolution=pg.display.get_surface().get_size()
             side_menu.resize()
         elif event.type == show_forces_event:
             show_forces = not show_forces
@@ -46,6 +51,7 @@ while running:
             mode=Mode.ADD_FORCE_SELECT_OBJECT
 
     # Update body and forces
+    ground.render(screen)
     for body in bodyList:
         if not paused:
             body.update()

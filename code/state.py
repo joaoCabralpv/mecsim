@@ -6,6 +6,8 @@ class Mode(Enum):
     ADD_FORCE_SELECT_OBJECT=1
     ADD_FORCE_CHOSE_VECTOR=2
 
+resolution = (0,0)
+
 mode:Mode=Mode.DEFAULT
 paused = True
 
