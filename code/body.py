@@ -2,12 +2,15 @@ import pygame as pg
 from pygame.math import Vector2 as Vector
 from force import Force
 from vector_tools import *
+from ground import *
+from math import sin,cos,pi
 
 class Body:
     rect: pg.Rect
     velocity: Vector
     applied_forces: list[Force]
     net_force: Vector
+    normal_force: Vector
     mass: float
 
     def __init__(self,rect:pg.Rect,mass:float,velocity=Vector(0,0)):
@@ -15,7 +18,8 @@ class Body:
         self.mass=mass
         self.velocity=velocity
         self.net_force=Vector(0,0)
-        self.applied_forces=[]
+        self.normal_force=Vector(0,0)
+        self.applied_forces = []
 
     def pos(self):
         return (self.rect.x,self.rect.y)
@@ -29,16 +33,45 @@ class Body:
     def render_forces(self,screen:pg.surface):
         for force in self.applied_forces:
             draw_vector(screen,self.center(),force.direction,(0,0,0))
+        self.render_normal_force(screen)
 
     def render_net_force(self,screen:pg.surface):
         draw_vector(screen,self.center(),self.net_force,(255,0,0))
 
-    def update(self):
+    def render_normal_force(self,screen:pg.surface):
+        if self.normal_force:
+            draw_vector(screen,self.center(),self.normal_force,(0,0,255))
+
+    def update(self,ground:Ground):
+        self.net_force=Vector(0,0)
+        for force in self.applied_forces:
+            self.net_force+=force.direction
+
+        self.handle_collision(ground)
         self.velocity+=self.net_force/self.mass
+
         new_pos_x=self.rect.x+self.velocity.x
         new_pos_y=self.rect.y+self.velocity.y
         self.rect=pg.Rect(new_pos_x,new_pos_y,self.rect.width,self.rect.height)
 
     def apply_force(self,force:Force):
         self.applied_forces.append(force)
-        self.net_force+=force.direction
+
+    def handle_collision(self,ground:Ground):
+        if self.rect.clipline(ground.p1,ground.p2):
+            angle = pi-ground.angle if ground.increase_right else ground.angle
+            normal_rotated_y=-(-self.net_force.x*sin(ground.angle)+self.net_force.y*cos(ground.angle))
+            # normal_rotated_x = 0
+            normal_x=-normal_rotated_y*sin(angle)
+            normal_y=normal_rotated_y*cos(angle)
+            self.normal_force=Vector(normal_x,normal_y)
+            print(self.normal_force)
+            self.net_force+=self.normal_force
+
+            velocity_x_rotated=self.velocity.x*cos(angle)+self.velocity.y*sin(angle)
+            new_velocity_x=velocity_x_rotated*cos(angle)
+            new_velocity_y=velocity_x_rotated*sin(angle)
+            self.velocity=Vector(new_velocity_x,new_velocity_y)
+
+        else:
+            self.normal_force=Vector(0,0)

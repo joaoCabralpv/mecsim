@@ -25,7 +25,7 @@ running = True
 
 bodyList.append(Body(pg.Rect(100,100,100,50),500))
 
-ground = Ground(400,tau/16,True)
+ground = Ground(200,tau/16,True)
 
 body_to_add_force = None
 
@@ -54,7 +54,7 @@ while running:
     ground.render(screen)
     for body in bodyList:
         if not paused:
-            body.update()
+            body.update(ground)
         body.render(screen)
         if show_forces:
             body.render_forces(screen)
