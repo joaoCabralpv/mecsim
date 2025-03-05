@@ -2,9 +2,9 @@ import pygame as pg
 from pygame.math import Vector2 as Vector
 import math
 
-scale = 10
+default_scale = 10
 
-def draw_vector(screen,pos:Vector,vector:Vector,color):
+def draw_vector(screen,pos:Vector,vector:Vector,color,scale:int=default_scale):
     vector = Vector(vector.x*scale,vector.y*scale)
     end = pos+vector
     head_size=10

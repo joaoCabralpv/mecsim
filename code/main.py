@@ -23,9 +23,9 @@ side_menu.add_button(40,30,pg.Color(178, 190, 195),"Add force",pg.Color(0, 0, 0)
 clock = pg.time.Clock()
 running = True
 
-bodyList.append(Body(pg.Rect(100,100,100,50),500))
+bodyList.append(Body(pg.Rect(500,350,100,50),9,2))
 
-ground = Ground(200,tau/16,True)
+ground = Ground(200,tau/16,False)
 
 body_to_add_force = None
 
@@ -73,11 +73,11 @@ while running:
         if pg.mouse.get_just_pressed()[0]:
             body_pos=body_to_add_force.center()
             mouse_pos=pg.mouse.get_pos()
-            force=Force((Vector(mouse_pos)-Vector(body_pos))/scale)
+            force=Force((Vector(mouse_pos)-Vector(body_pos))/default_scale)
             body_to_add_force.apply_force(force)
             mode=Mode.DEFAULT
 
-        draw_vector(screen,body_to_add_force.center(),(Vector(pg.mouse.get_pos())-Vector(body_to_add_force.center()))/scale,(0,0,0))
+        draw_vector(screen,body_to_add_force.center(),(Vector(pg.mouse.get_pos())-Vector(body_to_add_force.center()))/default_scale,(0,0,0))
 
     # Display things
     pg.display.flip()

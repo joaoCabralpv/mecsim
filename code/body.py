@@ -3,7 +3,9 @@ from pygame.math import Vector2 as Vector
 from force import Force
 from vector_tools import *
 from ground import *
-from math import sin,cos,pi
+from math import sin,cos,pi,copysign
+
+gravity = 1
 
 class Body:
     rect: pg.Rect
@@ -11,14 +13,21 @@ class Body:
     applied_forces: list[Force]
     net_force: Vector
     normal_force: Vector
+    gravitational_force: Vector
+    max_friction_magintude: int
+    friction_force: Vector
     mass: float
 
-    def __init__(self,rect:pg.Rect,mass:float,velocity=Vector(0,0)):
+
+    def __init__(self,rect:pg.Rect,mass:float,friction:int,velocity=Vector(0,0)):
         self.rect=rect
         self.mass=mass
         self.velocity=velocity
         self.net_force=Vector(0,0)
         self.normal_force=Vector(0,0)
+        self.friction_force=Vector(0,0)
+        self.gravitational_force=Vector(0,mass*gravity)
+        self.max_friction_magintude=friction
         self.applied_forces = []
 
     def pos(self):
@@ -31,9 +40,12 @@ class Body:
         pg.draw.rect(screen,"white",self.rect)
 
     def render_forces(self,screen:pg.surface):
+        draw_vector(screen,self.center(),self.velocity,(255,0,255),scale=5)
         for force in self.applied_forces:
             draw_vector(screen,self.center(),force.direction,(0,0,0))
         self.render_normal_force(screen)
+        self.render_gravitational_force(screen)
+        self.render_friction(screen)
 
     def render_net_force(self,screen:pg.surface):
         draw_vector(screen,self.center(),self.net_force,(255,0,0))
@@ -42,10 +54,19 @@ class Body:
         if self.normal_force:
             draw_vector(screen,self.center(),self.normal_force,(0,0,255))
 
+    def render_gravitational_force(self,screen:pg.surface):
+            draw_vector(screen,self.center(),self.gravitational_force,(0,255,0))
+
+    def render_friction(self,screen:pg.surface):
+        print(self.friction_force.magnitude())
+        if self.friction_force:
+            draw_vector(screen,self.center(),self.friction_force,(255,255,0))
+
     def update(self,ground:Ground):
         self.net_force=Vector(0,0)
         for force in self.applied_forces:
             self.net_force+=force.direction
+        self.net_force+=self.gravitational_force
 
         self.handle_collision(ground)
         self.velocity+=self.net_force/self.mass
@@ -60,14 +81,35 @@ class Body:
     def handle_collision(self,ground:Ground):
         if self.rect.clipline(ground.p1,ground.p2):
             angle = pi-ground.angle if ground.increase_right else ground.angle
-            normal_rotated_y=-(-self.net_force.x*sin(ground.angle)+self.net_force.y*cos(ground.angle))
+
+            net_force_rotated_x = self.net_force.x*cos(angle)+self.net_force.y*sin(angle)
+            net_force_rotated_y = -self.net_force.x*sin(ground.angle)+self.net_force.y*cos(ground.angle)
+
+
+            # Normal force
+            normal_rotated_y=min(-net_force_rotated_y,0)
             # normal_rotated_x = 0
+
+
             normal_x=-normal_rotated_y*sin(angle)
             normal_y=normal_rotated_y*cos(angle)
             self.normal_force=Vector(normal_x,normal_y)
-            print(self.normal_force)
+            if ground.increase_right:
+                self.normal_force*=-1
             self.net_force+=self.normal_force
 
+            # Friction 
+            if normal_rotated_y:
+                friction_force_rotated_x = -net_force_rotated_x
+                if abs(friction_force_rotated_x) > self.max_friction_magintude:
+                    print("AAA")
+                    friction_force_rotated_x = copysign(self.max_friction_magintude,friction_force_rotated_x)
+                # friction_force_rotated_y = 0
+                self.friction_force.x = friction_force_rotated_x*cos(angle)
+                self.friction_force.y = friction_force_rotated_x*sin(angle)
+                self.net_force+=self.friction_force
+
+            # Velocity
             velocity_x_rotated=self.velocity.x*cos(angle)+self.velocity.y*sin(angle)
             new_velocity_x=velocity_x_rotated*cos(angle)
             new_velocity_y=velocity_x_rotated*sin(angle)
@@ -75,3 +117,4 @@ class Body:
 
         else:
             self.normal_force=Vector(0,0)
+            self.friction_force=Vector(0,0)
