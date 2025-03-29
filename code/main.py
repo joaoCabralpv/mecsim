@@ -23,7 +23,7 @@ side_menu.add_button(40,30,pg.Color(178, 190, 195),"Add force",pg.Color(0, 0, 0)
 clock = pg.time.Clock()
 running = True
 
-bodyList.append(Body(pg.Rect(500,350,100,50),9,2))
+bodyList.append(Body(pg.Rect(500,350,100,50),5))
 
 ground = Ground(200,tau/16,False)
 

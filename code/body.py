@@ -3,7 +3,7 @@ from pygame.math import Vector2 as Vector
 from force import Force
 from vector_tools import *
 from ground import *
-from math import sin,cos,pi,copysign
+from math import sin,cos,pi
 
 gravity = 1
 
@@ -19,15 +19,13 @@ class Body:
     mass: float
 
 
-    def __init__(self,rect:pg.Rect,mass:float,friction:int,velocity=Vector(0,0)):
+    def __init__(self,rect:pg.Rect,mass:float,velocity=Vector(0,0)):
         self.rect=rect
         self.mass=mass
         self.velocity=velocity
         self.net_force=Vector(0,0)
         self.normal_force=Vector(0,0)
-        self.friction_force=Vector(0,0)
         self.gravitational_force=Vector(0,mass*gravity)
-        self.max_friction_magintude=friction
         self.applied_forces = []
 
     def pos(self):
@@ -45,7 +43,6 @@ class Body:
             draw_vector(screen,self.center(),force.direction,(0,0,0))
         self.render_normal_force(screen)
         self.render_gravitational_force(screen)
-        self.render_friction(screen)
 
     def render_net_force(self,screen:pg.surface):
         draw_vector(screen,self.center(),self.net_force,(255,0,0))
@@ -56,11 +53,6 @@ class Body:
 
     def render_gravitational_force(self,screen:pg.surface):
             draw_vector(screen,self.center(),self.gravitational_force,(0,255,0))
-
-    def render_friction(self,screen:pg.surface):
-        print(self.friction_force.magnitude())
-        if self.friction_force:
-            draw_vector(screen,self.center(),self.friction_force,(255,255,0))
 
     def update(self,ground:Ground):
         self.net_force=Vector(0,0)
@@ -97,17 +89,6 @@ class Body:
             if ground.increase_right:
                 self.normal_force*=-1
             self.net_force+=self.normal_force
-
-            # Friction 
-            if normal_rotated_y:
-                friction_force_rotated_x = -net_force_rotated_x
-                if abs(friction_force_rotated_x) > self.max_friction_magintude:
-                    print("AAA")
-                    friction_force_rotated_x = copysign(self.max_friction_magintude,friction_force_rotated_x)
-                # friction_force_rotated_y = 0
-                self.friction_force.x = friction_force_rotated_x*cos(angle)
-                self.friction_force.y = friction_force_rotated_x*sin(angle)
-                self.net_force+=self.friction_force
 
             # Velocity
             velocity_x_rotated=self.velocity.x*cos(angle)+self.velocity.y*sin(angle)
